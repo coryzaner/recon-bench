@@ -19,7 +19,7 @@ public or third-party systems.
 ## Quickstart
 
 ```bash
-git clone <BENCH_REPO_URL> recon-bench && cd recon-bench
+git clone https://github.com/coryzaner/recon-bench.git recon-bench && cd recon-bench
 ansible-galaxy collection install -r requirements.yml
 make test                                 # gate unit tests, no VM needed
 cp inventory.example.yml inventory.yml    # set your private lab VM IP/user/key
