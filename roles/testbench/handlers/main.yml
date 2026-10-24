@@ -1,0 +1,6 @@
+---
+- name: Restart docker compose stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ testbench_prefix }}/compose"
+    state: restarted
+  listen: restart testbench compose

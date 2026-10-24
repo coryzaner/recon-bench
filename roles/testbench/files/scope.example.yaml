@@ -1,0 +1,32 @@
+---
+# scope.example.yaml — sample engagement scope for the ethical recon/test
+# bench.
+#
+# Copy to /etc/testbench/scope.yaml and edit for YOUR authorized engagement.
+# Active-tier tools will REFUSE any target not listed here.
+# LAB-ONLY by default.
+#
+# Only put targets you are explicitly authorized to test.
+# Never public or third-party systems.
+meta:
+  engagement: "lab self-assessment (EXAMPLE)"
+  owner: "operator@example.com"
+  notes: "Lab assets only. Edit before use."
+
+in_scope:
+  # DNS domains (apex and any subdomain, e.g. foo.lab.example.)
+  domains:
+    - lab.example.com
+  # IPv4/IPv6 networks in CIDR notation.
+  # A CIDR target must be fully contained.
+  cidrs:
+    - 192.0.2.0/24  # example lab LAN (TEST-NET-1 placeholder)
+    - 198.51.100.0/24  # example second lab net (TEST-NET-2)
+  # Explicit single hosts (IP or hostname) not covered above.
+  hosts:
+    - web01.lab.example.com
+
+# Optional: targets explicitly excluded even if inside in_scope.
+# Advisory — enforce operationally; guard uses in_scope as allowlist.
+out_of_scope:
+  - 192.0.2.1  # example: gateway you do not want scanned

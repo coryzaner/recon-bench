@@ -1,0 +1,7 @@
+# {{ ansible_managed }}
+# Operator shell hook for the ethical recon/test bench.
+set -a
+[ -f {{ testbench_etc }}/testbench.env ] && . {{ testbench_etc }}/testbench.env
+set +a
+case ":$PATH:" in *":{{ testbench_bin }}:"*) ;; *) PATH="{{ testbench_bin }}:$PATH";; esac
+export PATH

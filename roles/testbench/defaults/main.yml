@@ -1,0 +1,50 @@
+---
+# roles/testbench/defaults/main.yml — ethical recon/test bench.
+# Lab-only. Override per-host in inventory/host_vars as needed.
+
+# Install locations
+testbench_prefix: /opt/testbench
+testbench_bin: "{{ testbench_prefix }}/bin"
+testbench_venv: "{{ testbench_prefix }}/venv"
+testbench_etc: /etc/testbench
+testbench_user: testbench  # non-root service/owner account
+
+# Feature toggles -------------------------------------------------------------
+testbench_install_passive: true
+testbench_install_active: true
+# OpenVAS/Greenbone + OWASP ZAP are heavy (containers / large feeds); opt-in.
+testbench_install_openvas: false  # multi-GB feeds on first sync (slow)
+testbench_install_zap: true
+# Install Docker-based active tools via compose instead of native where noisy.
+testbench_use_docker_for_heavy: true
+
+# Tool versions (pinned where practical) --------------------------------------
+testbench_go_tools:  # installed via `go install` or release bins
+  - {name: amass, tier: passive}
+  - {name: dnsx, tier: passive}
+  - {name: httpx, tier: passive}
+  - {name: nuclei, tier: active}
+testbench_apt_passive:
+  - dnsrecon
+  - sslscan
+  - whois
+  - dnsutils
+  - jq
+  - curl
+testbench_apt_active:
+  - nmap
+  - masscan
+  - nikto
+
+# Python (pipx/venv) active tools
+testbench_pipx_active:
+  - {name: scoutsuite, pkg: scoutsuite}
+  - {name: prowler, pkg: prowler}
+  - {name: roadrecon, pkg: roadrecon}
+  - {name: semgrep, pkg: semgrep}
+
+# Gate configuration ----------------------------------------------------------
+# NEVER bake a real signed authorization. Only examples are shipped.
+testbench_deploy_example_scope: true  # drop scope.example.yaml for reference
+testbench_keyring: "{{ testbench_etc }}/operators.gpg"
+testbench_allow_no_sig: false  # keep false; true only for lab dry-run

@@ -1,0 +1,18 @@
+---
+# inventory.example.yml — copy to inventory.yml and point at YOUR lab VM.
+# ansible_host below is an RFC 5737 documentation placeholder: replace it
+# with the private (RFC1918/CGNAT) address of a lab VM you own. The role
+# refuses to run against addresses that do not look private.
+# Add a ProxyJump in ansible_ssh_common_args if you need a bastion.
+all:
+  children:
+    testbench:
+      hosts:
+        lab-testbench:
+          ansible_host: 192.0.2.30  # <- your lab VM IP (edit)
+          ansible_user: operator
+          ansible_become: true
+          ansible_python_interpreter: /usr/bin/python3
+          ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+          ansible_ssh_common_args: >-
+            -o StrictHostKeyChecking=accept-new

@@ -1,0 +1,37 @@
+---
+# Heavy active tools delivered as containers via compose
+# (ZAP, Greenbone/OpenVAS).
+- name: Ensure docker + compose plugin
+  ansible.builtin.apt:
+    name: [docker.io, docker-compose-v2]
+    state: present
+
+- name: Create compose dir
+  ansible.builtin.file:
+    path: "{{ testbench_prefix }}/compose"
+    state: directory
+    owner: "{{ testbench_user }}"
+    group: "{{ testbench_user }}"
+    mode: "0750"
+
+- name: Deploy docker-compose.yml for heavy active tools
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ testbench_prefix }}/compose/docker-compose.yml"
+    mode: "0640"
+  notify: restart testbench compose
+
+- name: Deploy compose .env
+  ansible.builtin.template:
+    src: compose.env.j2
+    dest: "{{ testbench_prefix }}/compose/.env"
+    mode: "0640"
+
+# NOTE: we do NOT auto-start/pull here to avoid multi-GB OpenVAS feed sync
+# during provisioning. Operator starts explicitly (see README).
+- name: Report compose readiness
+  ansible.builtin.debug:
+    msg: >-
+      Compose stack written to {{ testbench_prefix }}/compose. Start heavy
+      tools manually: 'docker compose up -d' (OpenVAS first-run feed sync is
+      large and slow — see README caveats).

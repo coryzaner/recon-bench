@@ -1,0 +1,16 @@
+# Never commit real scope/authorization or signatures
+inventory.yml
+authorization.yml
+authorization.yml.sig
+scope.yaml
+operators.gpg
+compose/.env
+*.log
+__pycache__/
+.ansible/
+collections/
+*.sig
+*.key
+.secrets/
+audit.log
+acceptable_use_accepted

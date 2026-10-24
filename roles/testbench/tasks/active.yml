@@ -1,0 +1,39 @@
+---
+# Active tier — GATED. Binaries are installed but only runnable via recon-guard.
+- name: Install active apt tools
+  ansible.builtin.apt:
+    name: "{{ testbench_apt_active }}"
+    state: present
+
+- name: Install active Go tools (nuclei, etc.)
+  ansible.builtin.include_tasks: go_tool.yml
+  loop: >-
+    {{ testbench_go_tools | selectattr('tier', 'equalto', 'active')
+       | list }}
+  loop_control:
+    loop_var: gotool
+
+- name: Ensure pipx path
+  ansible.builtin.command: pipx ensurepath
+  environment:
+    PIPX_HOME: "{{ testbench_prefix }}/pipx"
+    PIPX_BIN_DIR: "{{ testbench_bin }}"
+  changed_when: false
+
+- name: Install active Python tools via pipx
+  ansible.builtin.command:
+    cmd: "pipx install {{ item.pkg }}"
+  environment:
+    PIPX_HOME: "{{ testbench_prefix }}/pipx"
+    PIPX_BIN_DIR: "{{ testbench_bin }}"
+  args:
+    creates: "{{ testbench_bin }}/{{ item.name }}"
+  loop: "{{ testbench_pipx_active }}"
+
+- name: Install gitleaks + trufflehog (release tarballs)
+  ansible.builtin.include_tasks: secrets_scanners.yml
+
+- name: Deploy docker-based heavy active tools (ZAP, OpenVAS)
+  ansible.builtin.import_tasks: docker_active.yml
+  when: testbench_use_docker_for_heavy | bool
+  tags: [docker]

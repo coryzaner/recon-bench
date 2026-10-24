@@ -1,0 +1,52 @@
+---
+# Safety gate: wrapper + validator + example scope/auth. Active tools run ONLY
+# through recon-guard, which refuses without valid scope.yaml + signed auth.
+- name: Install scope/auth validator
+  ansible.builtin.copy:
+    src: scope_check.py
+    dest: "{{ testbench_prefix }}/scope_check.py"
+    mode: "0755"
+
+- name: Install recon-guard wrapper
+  ansible.builtin.copy:
+    src: recon-guard.sh
+    dest: "{{ testbench_bin }}/recon-guard"
+    mode: "0755"
+
+- name: Deploy testbench environment file
+  ansible.builtin.template:
+    src: testbench.env.j2
+    dest: "{{ testbench_etc }}/testbench.env"
+    mode: "0644"
+
+- name: Install profile.d hook (PATH + env for operators)
+  ansible.builtin.template:
+    src: profile.sh.j2
+    dest: /etc/profile.d/testbench.sh
+    mode: "0644"
+
+- name: Deploy EXAMPLE scope (reference only — edit before use)
+  ansible.builtin.copy:
+    src: scope.example.yaml
+    dest: "{{ testbench_etc }}/scope.example.yaml"
+    mode: "0644"
+  when: testbench_deploy_example_scope | bool
+
+- name: Deploy EXAMPLE authorization template (unsigned, non-valid)
+  ansible.builtin.copy:
+    src: authorization.example.yml
+    dest: "{{ testbench_etc }}/authorization.example.yml"
+    mode: "0644"
+
+# Never deploy a real scope.yaml/authorization.yml/*.sig from the role.
+- name: Assert no real authorization is shipped by the role
+  ansible.builtin.stat:
+    path: "{{ role_path }}/files/authorization.yml"
+  register: testbench_realauth
+  delegate_to: localhost
+  become: false
+
+- name: Fail if a real authorization leaked into role files
+  ansible.builtin.fail:
+    msg: "A real authorization.yml must never live in the role. Remove it."
+  when: testbench_realauth.stat.exists

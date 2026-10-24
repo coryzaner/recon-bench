@@ -1,0 +1,18 @@
+---
+# Install a ProjectDiscovery-style Go tool. Idempotent: skips if present.
+- name: "Stat go tool {{ gotool.name }}"
+  ansible.builtin.stat:
+    path: "{{ testbench_bin }}/{{ gotool.name }}"
+  register: testbench_gt
+
+- name: "Go install tool {{ gotool.name }}"
+  ansible.builtin.command:
+    cmd: >-
+      go install github.com/projectdiscovery/{{ gotool.name }}/v2/cmd/{{ gotool.name }}@latest
+  environment:
+    GOBIN: "{{ testbench_bin }}"
+    GOPATH: "{{ testbench_prefix }}/go"
+  changed_when: true
+  when:
+    - not testbench_gt.stat.exists
+    - "'go' in ansible_facts.packages or true"   # requires golang; see README

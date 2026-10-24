@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  role_name: testbench
+  author: recon-bench contributors
+  description: >-
+    Idempotent ethical recon/test bench with a two-tier (passive/active) tool
+    set and a scope + signed-authorization safety gate. Lab-only.
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Debian
+      versions: [bookworm]
+    - name: Ubuntu
+      versions: [jammy, noble]
+  galaxy_tags: [security, recon, pentest, lab]
+dependencies: []

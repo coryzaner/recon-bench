@@ -1,0 +1,31 @@
+# {{ ansible_managed }}
+# Heavy ACTIVE tools (ZAP, Greenbone/OpenVAS). Lab-only; bound to {{ '${TB_BIND_ADDR}' }}.
+# These are gated operationally: only run scans against in-scope targets, and
+# treat any scan launch as an ACTIVE action requiring scope + authorization.
+name: testbench
+services:
+{% if testbench_install_zap %}
+  zap:
+    image: ghcr.io/zaproxy/zaproxy:stable
+    command: ["zap.sh", "-daemon", "-host", "0.0.0.0", "-port", "8080",
+              "-config", "api.disablekey=false"]
+    ports:
+      - "${TB_BIND_ADDR}:${ZAP_PORT}:8080"
+    restart: unless-stopped
+{% endif %}
+{% if testbench_install_openvas %}
+  # Greenbone Community Edition. First run pulls MULTI-GB feeds (slow).
+  greenbone:
+    image: greenbone/community-edition:stable
+    ports:
+      - "${TB_BIND_ADDR}:${GREENBONE_PORT}:9392"
+    volumes:
+      - gvmd_data:/var/lib/gvmd
+      - notus_data:/var/lib/notus
+      - psql_data:/var/lib/postgresql
+    restart: unless-stopped
+{% endif %}
+volumes:
+  gvmd_data:
+  notus_data:
+  psql_data:

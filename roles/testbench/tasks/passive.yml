@@ -1,0 +1,38 @@
+---
+# Passive tier — safe, no authorization required. Installed and runnable freely.
+- name: Install passive apt tools
+  ansible.builtin.apt:
+    name: "{{ testbench_apt_passive }}"
+    state: present
+
+- name: Install testssl.sh (git checkout, pinned branch)
+  ansible.builtin.git:
+    repo: https://github.com/drwetter/testssl.sh.git
+    dest: "{{ testbench_prefix }}/testssl.sh"
+    version: "3.2"
+    depth: 1
+  register: testbench_testssl
+  retries: 2
+  delay: 5
+  until: testbench_testssl is succeeded
+
+- name: Symlink testssl.sh into bin
+  ansible.builtin.file:
+    src: "{{ testbench_prefix }}/testssl.sh/testssl.sh"
+    dest: "{{ testbench_bin }}/testssl.sh"
+    state: link
+    force: true
+
+- name: Install crt.sh helper
+  ansible.builtin.copy:
+    src: crtsh.sh
+    dest: "{{ testbench_bin }}/crtsh"
+    mode: "0755"
+
+- name: Install passive Go tools (release binaries via install script)
+  ansible.builtin.include_tasks: go_tool.yml
+  loop: >-
+    {{ testbench_go_tools | selectattr('tier', 'equalto', 'passive')
+       | list }}
+  loop_control:
+    loop_var: gotool

@@ -1,0 +1,73 @@
+---
+# roles/testbench/tasks/main.yml — orchestrates the ethical recon/test bench.
+- name: Build lab-only host regex (RFC1918 + CGNAT 100.64/10 + loopback)
+  ansible.builtin.set_fact:
+    testbench_lab_host_re: "{{ _tb_re_a ~ _tb_re_b }}"
+  vars:
+    _tb_re_a: '^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.'
+    _tb_re_b: '|100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\.|127\.)'
+
+- name: Assert lab-only target (refuse obviously-public hosts)
+  ansible.builtin.assert:
+    that:
+      - ansible_host is not defined or
+        ansible_host is match(testbench_lab_host_re)
+    fail_msg: >-
+      Refusing to run: target {{ ansible_host | default('?') }} does not look
+      like a private/lab (RFC1918) or CGNAT (100.64.0.0/10) address. This bench is
+      lab-only.
+    quiet: true
+
+- name: Create testbench system group
+  ansible.builtin.group:
+    name: "{{ testbench_user }}"
+    system: true
+
+- name: Create testbench system user
+  ansible.builtin.user:
+    name: "{{ testbench_user }}"
+    group: "{{ testbench_user }}"
+    system: true
+    shell: /usr/sbin/nologin
+    home: "{{ testbench_prefix }}"
+    create_home: false
+
+- name: Create directory tree
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ testbench_user }}"
+    group: "{{ testbench_user }}"
+    mode: "0750"
+  loop:
+    - "{{ testbench_prefix }}"
+    - "{{ testbench_bin }}"
+    - "{{ testbench_etc }}"
+
+- name: Install base packages
+  ansible.builtin.apt:
+    name:
+      - python3
+      - python3-yaml
+      - python3-pip
+      - pipx
+      - gnupg
+      - git
+      - ca-certificates
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Import passive-tier tasks
+  ansible.builtin.import_tasks: passive.yml
+  when: testbench_install_passive | bool
+  tags: [passive]
+
+- name: Import active-tier tasks
+  ansible.builtin.import_tasks: active.yml
+  when: testbench_install_active | bool
+  tags: [active]
+
+- name: Import safety-gate tasks
+  ansible.builtin.import_tasks: guard.yml
+  tags: [guard]

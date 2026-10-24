@@ -1,0 +1,9 @@
+---
+# site.yml — stand up the ethical recon/test bench on a lab VM.
+# One-command run:  ansible-playbook -i inventory.yml site.yml --limit testbench
+- name: Deploy ethical recon/test bench (lab-only)
+  hosts: testbench
+  become: true
+  gather_facts: true
+  roles:
+    - role: testbench

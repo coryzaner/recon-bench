@@ -1,0 +1,38 @@
+---
+# authorization.example.yml — EXAMPLE / UNSIGNED authorization template.
+#
+# This file is intentionally NON-VALID: the guard refuses any authorization
+# with `example: true`. To create a real one:
+#
+#   1. cp authorization.example.yml authorization.yml
+#   2. Remove the `example: true` line and fill in real values.
+#   3. Bind it to your scope:
+#        sha256sum /etc/testbench/scope.yaml
+#        # paste digest into scope_sha256
+#   4. Sign it with the operator's GPG key (detached, ascii):
+#        gpg --armor --detach-sign -o authorization.yml.sig \
+#            authorization.yml
+#   5. Import the operator's PUBLIC key into the trusted keyring:
+#        gpg --no-default-keyring \
+#            --keyring /etc/testbench/operators.gpg \
+#            --import operator-pub.asc
+#
+# Never commit a real signed authorization to git. Keep auth + .sig in
+# /etc/testbench (on the VM) and secrets in
+# a private directory outside the repo (0600).
+
+# DELETE the next line in a real authorization:
+example: true
+
+operator: "operator@example.com"
+issued: "2026-10-23"
+not_before: "2026-10-23"
+expires: "2026-11-23"  # short window; keep it tight
+engagement: "lab self-assessment (EXAMPLE)"
+scope_ref: "scope.yaml"
+# sha256 of the exact scope.yaml this authorization covers:
+scope_sha256: "REPLACE_WITH_SHA256_OF_scope.yaml"
+authorization_statement: >
+  I, the named operator, am authorized by the asset owner to perform active
+  security testing against the in-scope targets defined in the referenced
+  scope.yaml, for the window above only. EXAMPLE — not valid as written.
